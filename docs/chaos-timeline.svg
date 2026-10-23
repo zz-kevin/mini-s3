@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" font-family="sans-serif">
+<rect width="640" height="250" fill="white"/>
+<line x1="40" y1="180" x2="600" y2="180" stroke="#888"/>
+<polyline points="40.0,40.0 96.0,43.0 152.0,57.4 208.0,67.6 264.0,78.0 320.0,90.3 376.0,135.5 432.0,145.6 488.0,98.8 544.0,41.4 600.0,59.2" fill="none" stroke="#378ADD" stroke-width="2"/>
+<polyline points="40.0,180.0 96.0,180.0 152.0,180.0 208.0,180.0 264.0,180.0 320.0,40.0 376.0,40.0 432.0,40.0 488.0,180.0 544.0,180.0 600.0,180.0" fill="none" stroke="#EF9F27" stroke-width="2"/>
+<line x1="208.0" y1="40" x2="208.0" y2="180" stroke="#E24B4A" stroke-dasharray="4 3"/><text x="212.0" y="52" fill="#E24B4A" font-size="11">node killed</text><line x1="488.0" y1="40" x2="488.0" y2="180" stroke="#1D9E75" stroke-dasharray="4 3"/><text x="492.0" y="66" fill="#1D9E75" font-size="11">fully re-replicated</text>
+<text x="40" y="202" font-size="11" fill="#555">seconds</text>
+<text x="40" y="232" font-size="11" fill="#378ADD">successful reads/sec (max 1035)</text>
+<text x="250" y="232" font-size="11" fill="#EF9F27">under-replicated objects (max 800)</text>
+<text x="490" y="232" font-size="11" fill="#E24B4A">failed reads</text>
+</svg>

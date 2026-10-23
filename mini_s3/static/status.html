@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mini-s3 Dashboard</title>
+<style>
+  :root {
+    --bg: #f7f6f3; --card: #fff; --text: #1f1e1c; --muted: #6b6a65; --border: #e3e1da;
+    --up: #1d9e75; --up-bg: #e1f5ee; --down: #e24b4a; --down-bg: #fcebeb; --warn: #ba7517; --warn-bg: #faeeda;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1a1918; --card: #232220; --text: #ecebe6; --muted: #a3a19a; --border: #3a3936;
+      --up: #5dcaa5; --up-bg: #0f3a2e; --down: #f09595; --down-bg: #4a1f1f; --warn: #ef9f27; --warn-bg: #412402; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 28px 16px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .stat .label { color: var(--muted); font-size: 13px; }
+  .stat .value { font-size: 24px; font-weight: 600; }
+  .stat.warn { background: var(--warn-bg); border-color: var(--warn); }
+  .stat.warn .value { color: var(--warn); }
+  .stat.bad { background: var(--down-bg); border-color: var(--down); }
+  .stat.bad .value { color: var(--down); }
+  .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .node { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .node.up { border-color: var(--up); }
+  .node.down { border: 1px dashed var(--down); background: var(--down-bg); }
+  .node h2 { font-size: 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; }
+  .pill { font-size: 12px; padding: 1px 8px; border-radius: 99px; font-weight: 600; }
+  .up .pill { background: var(--up-bg); color: var(--up); }
+  .down .pill { background: var(--card); color: var(--down); }
+  .node p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+  .bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--up); transition: width .4s; }
+  .down .bar span { background: var(--down); }
+  .err { color: var(--down); }
+  code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>mini-s3 cluster</h1>
+  <p class="sub" id="sub">Connecting…</p>
+  <div class="stats" id="stats"></div>
+  <div class="nodes" id="nodes"></div>
+  <footer>Try <code>./ms3 cluster kill b</code> in a terminal and watch the repair worker restore every copy. Updates every second.</footer>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const mb = (b) => (b / 1e6).toFixed(b < 1e7 ? 2 : 1) + " MB";
+
+async function refresh() {
+  try {
+    const s = await (await fetch("/_cluster")).json();
+    const up = s.nodes.filter((n) => n.alive).length;
+    $("sub").textContent = `${up} of ${s.nodes.length} nodes up · every object stored ${s.replicas}× · writes need ${s.write_quorum} confirmations`;
+    $("sub").classList.remove("err");
+    const stat = (label, value, cls = "") => `<div class="stat ${cls}"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+    $("stats").innerHTML =
+      stat("Objects", s.objects.toLocaleString()) +
+      stat("Logical data", mb(s.bytes)) +
+      stat("Under-replicated", s.under_replicated.toLocaleString(), s.under_replicated ? "warn" : "") +
+      stat("Unreachable", s.lost.toLocaleString(), s.lost ? "bad" : "") +
+      stat("Repairs done", s.repairs.toLocaleString()) +
+      stat("Read failovers", s.read_failovers.toLocaleString()) +
+      stat("Read repairs", s.read_repairs.toLocaleString());
+    const maxBlobs = Math.max(1, ...s.nodes.map((n) => n.blobs));
+    $("nodes").innerHTML = s.nodes.map((n) => `
+      <div class="node ${n.alive ? "up" : "down"}">
+        <h2>Node ${esc(n.id)} <span class="pill">${n.alive ? "up" : "down"}</span></h2>
+        <p>${n.blobs.toLocaleString()} blobs · ${mb(n.bytes)}</p>
+        <p>${n.alive ? "up" : "down"} for ${Math.round(n.for_seconds)}s · ${esc(n.url.replace("http://", ""))}</p>
+        <div class="bar"><span style="width:${(100 * n.blobs) / maxBlobs}%"></span></div>
+      </div>`).join("");
+  } catch {
+    $("sub").textContent = "Can't reach the gateway. Is the cluster running? (./ms3 cluster up)";
+    $("sub").classList.add("err");
+  }
+}
+refresh();
+setInterval(refresh, 1000);
+</script>
+</body>
+</html>
