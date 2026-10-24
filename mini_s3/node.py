@@ -7,6 +7,7 @@ import hashlib
 import os
 import re
 import tempfile
+import time
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.concurrency import run_in_threadpool
@@ -38,6 +39,20 @@ def health():
                     continue
                 blobs += 1
     return {"node_id": NODE_ID, "blobs": blobs, "bytes": size}
+
+
+@app.get("/blobs")
+def list_blobs():
+    """Every blob on this node with its age in seconds (used to find orphaned copies)."""
+    now, out = time.time(), []
+    with os.scandir(DATA_DIR) as entries:
+        for e in entries:
+            if BLOB_ID.match(e.name):
+                try:
+                    out.append({"id": e.name, "age": round(now - e.stat().st_mtime, 1)})
+                except FileNotFoundError:
+                    continue
+    return out
 
 
 @app.put("/blobs/{blob_id}", status_code=201)

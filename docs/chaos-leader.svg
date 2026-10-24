@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" font-family="sans-serif">
+<rect width="640" height="250" fill="white"/>
+<line x1="40" y1="180" x2="600" y2="180" stroke="#888"/>
+<polyline points="40.0,40.0 152.0,42.5 264.0,44.7 376.0,110.2 488.0,43.8 600.0,51.3" fill="none" stroke="#378ADD" stroke-width="2"/><polyline points="40.0,42.2 152.0,40.0 264.0,44.4 376.0,118.8 488.0,55.3 600.0,59.7" fill="none" stroke="#7F77DD" stroke-width="2"/>
+<line x1="376.0" y1="40" x2="376.0" y2="180" stroke="#E24B4A" stroke-dasharray="4 3"/><text x="380.0" y="52" fill="#E24B4A" font-size="11">leader killed</text><line x1="376.0" y1="40" x2="376.0" y2="180" stroke="#1D9E75" stroke-dasharray="4 3"/><text x="380.0" y="66" fill="#1D9E75" font-size="11">new leader</text>
+<text x="40" y="202" font-size="11" fill="#555">seconds</text>
+<text x="40" y="232" font-size="11" fill="#378ADD">reads/sec (max 620)</text>
+<text x="180" y="232" font-size="11" fill="#7F77DD">writes/sec (max 64)</text>
+
+<text x="500" y="232" font-size="11" fill="#E24B4A">failed requests</text>
+</svg>

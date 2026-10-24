@@ -6,3 +6,4 @@ data/
 .DS_Store
 data-backup-*/
 results/
+data-single-gateway-*/

@@ -39,6 +39,9 @@
   .bar span { display: block; height: 100%; background: var(--up); transition: width .4s; }
   .down .bar span { background: var(--down); }
   .err { color: var(--down); }
+  h3 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 24px 0 10px; }
+  .node.leader { border: 2px solid var(--up); }
+  .leader .pill { background: var(--up); color: var(--card); }
   code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
   footer { color: var(--muted); font-size: 13px; margin-top: 24px; }
 </style>
@@ -48,17 +51,49 @@
   <h1>mini-s3 cluster</h1>
   <p class="sub" id="sub">Connecting…</p>
   <div class="stats" id="stats"></div>
+  <h3>Gateways (Raft)</h3>
+  <div class="nodes" id="gateways"></div>
+  <h3>Storage nodes</h3>
   <div class="nodes" id="nodes"></div>
-  <footer>Try <code>./ms3 cluster kill b</code> in a terminal and watch the repair worker restore every copy. Updates every second.</footer>
+  <footer>Try <code>./ms3 cluster kill b</code> to crash a storage node, or <code>./ms3 cluster kill leader</code> to crash the leader gateway and watch a new one get elected. Updates every second.</footer>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const mb = (b) => (b / 1e6).toFixed(b < 1e7 ? 2 : 1) + " MB";
 
+// Every gateway we've heard of. If the one serving this page dies, poll another.
+let origins = [location.origin];
+
+async function fetchStatus() {
+  for (const origin of origins) {
+    try {
+      const r = await fetch(origin + "/_cluster", { signal: AbortSignal.timeout(1500) });
+      if (r.ok) return r.json();
+    } catch { /* try the next gateway */ }
+  }
+  throw new Error("no gateway answered");
+}
+
+function renderGateways(raft) {
+  const now = [{ id: raft.id, role: "leader", detail: `term ${raft.term} · log ${raft.commit_index}` }];
+  for (const [id, p] of Object.entries(raft.peers)) {
+    const ok = p.acked_ago !== null && p.acked_ago < 1;
+    now.push({ id, role: ok ? "follower" : "down", detail: ok ? `log ${p.match_index}` : "not responding" });
+  }
+  now.sort((a, b) => a.id.localeCompare(b.id));
+  $("gateways").innerHTML = now.map((g) => `
+    <div class="node ${g.role === "down" ? "down" : "up"} ${g.role === "leader" ? "leader" : ""}">
+      <h2>Gateway ${esc(g.id)} <span class="pill">${g.role}</span></h2>
+      <p>${esc(g.detail)}</p>
+    </div>`).join("");
+}
+
 async function refresh() {
   try {
-    const s = await (await fetch("/_cluster")).json();
+    const s = await fetchStatus();
+    origins = [...new Set([...origins, ...Object.values(s.raft.peers).map((p) => p.url)])];
+    renderGateways(s.raft);
     const up = s.nodes.filter((n) => n.alive).length;
     $("sub").textContent = `${up} of ${s.nodes.length} nodes up · every object stored ${s.replicas}× · writes need ${s.write_quorum} confirmations`;
     $("sub").classList.remove("err");
@@ -80,7 +115,7 @@ async function refresh() {
         <div class="bar"><span style="width:${(100 * n.blobs) / maxBlobs}%"></span></div>
       </div>`).join("");
   } catch {
-    $("sub").textContent = "Can't reach the gateway. Is the cluster running? (./ms3 cluster up)";
+    $("sub").textContent = "Can't reach any gateway (or an election is in progress). Is the cluster running? (./ms3 cluster up)";
     $("sub").classList.add("err");
   }
 }

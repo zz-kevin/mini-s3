@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" font-family="sans-serif">
 <rect width="640" height="250" fill="white"/>
 <line x1="40" y1="180" x2="600" y2="180" stroke="#888"/>
-<polyline points="40.0,40.0 96.0,43.0 152.0,57.4 208.0,67.6 264.0,78.0 320.0,90.3 376.0,135.5 432.0,145.6 488.0,98.8 544.0,41.4 600.0,59.2" fill="none" stroke="#378ADD" stroke-width="2"/>
-<polyline points="40.0,180.0 96.0,180.0 152.0,180.0 208.0,180.0 264.0,180.0 320.0,40.0 376.0,40.0 432.0,40.0 488.0,180.0 544.0,180.0 600.0,180.0" fill="none" stroke="#EF9F27" stroke-width="2"/>
-<line x1="208.0" y1="40" x2="208.0" y2="180" stroke="#E24B4A" stroke-dasharray="4 3"/><text x="212.0" y="52" fill="#E24B4A" font-size="11">node killed</text><line x1="488.0" y1="40" x2="488.0" y2="180" stroke="#1D9E75" stroke-dasharray="4 3"/><text x="492.0" y="66" fill="#1D9E75" font-size="11">fully re-replicated</text>
+<polyline points="40.0,48.2 90.9,63.1 141.8,58.3 192.7,59.2 243.6,88.1 294.5,44.9 345.5,57.9 396.4,103.5 447.3,112.8 498.2,40.0 549.1,42.9 600.0,42.9" fill="none" stroke="#378ADD" stroke-width="2"/><polyline points="40.0,54.6 90.9,69.3 141.8,58.8 192.7,60.9 243.6,94.3 294.5,50.4 345.5,60.9 396.4,113.1 447.3,121.5 498.2,40.0 549.1,48.4 600.0,46.3" fill="none" stroke="#7F77DD" stroke-width="2"/><polyline points="40.0,180.0 90.9,180.0 141.8,180.0 192.7,180.0 243.6,173.3 294.5,173.3 345.5,173.3 396.4,40.0 447.3,40.0 498.2,180.0 549.1,180.0 600.0,180.0" fill="none" stroke="#EF9F27" stroke-width="2"/>
+<line x1="192.7" y1="40" x2="192.7" y2="180" stroke="#E24B4A" stroke-dasharray="4 3"/><text x="196.7" y="52" fill="#E24B4A" font-size="11">node killed</text><line x1="498.2" y1="40" x2="498.2" y2="180" stroke="#1D9E75" stroke-dasharray="4 3"/><text x="502.2" y="66" fill="#1D9E75" font-size="11">fully re-replicated</text>
 <text x="40" y="202" font-size="11" fill="#555">seconds</text>
-<text x="40" y="232" font-size="11" fill="#378ADD">successful reads/sec (max 1035)</text>
-<text x="250" y="232" font-size="11" fill="#EF9F27">under-replicated objects (max 800)</text>
-<text x="490" y="232" font-size="11" fill="#E24B4A">failed reads</text>
+<text x="40" y="232" font-size="11" fill="#378ADD">reads/sec (max 635)</text>
+<text x="180" y="232" font-size="11" fill="#7F77DD">writes/sec (max 67)</text>
+<text x="320" y="232" font-size="11" fill="#EF9F27">under-replicated (max 1006)</text>
+<text x="500" y="232" font-size="11" fill="#E24B4A">failed requests</text>
 </svg>
