@@ -67,7 +67,7 @@ All 8 are described in the [README](../README.md#bugs-the-chaos-tests-found).
 ## Risks and next steps
 
 1. **Unbounded Raft log:** it grows with every change, and a new gateway replays it from the start. Next: periodic snapshots of the metadata database, then log truncation.
-2. **Disruptive rejoin:** an isolated gateway keeps bumping its term, so when it reconnects it forces a needless election (seen in testing: term 57 after a minute alone). Next: Raft pre-vote.
+2. **Disruptive rejoin:** an isolated gateway keeps bumping its term, so when it reconnects it forces a needless election (seen in testing: its term reached 57 while it was alone). Next: Raft pre-vote.
 3. **Fixed membership:** replacing a gateway requires a restart. Next: Raft's joint-consensus membership changes.
 4. **Duplicate writes on retry:** if a leader dies after committing but before replying, the client's retry writes the object again. That's harmless for whole-object `PUT`s. Next: client-supplied idempotency keys.
 5. **One machine:** all results come from one laptop, so network partitions and clock drift weren't tested. Next: deploy across EC2 instances (Free Tier) and inject network delays and partitions.
