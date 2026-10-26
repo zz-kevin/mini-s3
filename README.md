@@ -7,6 +7,8 @@ A replicated object store inspired by Amazon S3, with no single point of failure
 
 A chaos test crashes a storage node or the leader gateway under live traffic and measures what clients see.
 
+**Design doc:** [docs/DESIGN.md](docs/DESIGN.md) covers the decisions, the alternatives considered and the trade-offs.
+
 ## Results
 
 Four storage nodes, three gateways, 1,000 objects (1–64 KB each), 16 clients reading and 4 clients writing continuously. Midway through, one process was killed with `SIGKILL`.
