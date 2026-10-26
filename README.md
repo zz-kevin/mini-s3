@@ -127,6 +127,7 @@ Each of these passed the basic tests and only showed up when something was kille
 ## Limitations and next steps
 
 - **No log compaction.** The Raft log grows forever, and a brand-new gateway replays it from the beginning. Next step: periodic snapshots of the metadata database.
+- **No pre-vote.** A gateway cut off from the others keeps starting elections nobody answers, so its term climbs (to 57 in one demo run). When it reconnects, that high term forces an unnecessary election. Raft's pre-vote extension (ask "would you vote for me?" before bumping the term) fixes this.
 - **Fixed membership.** The set of gateways is set at startup. Adding or removing one safely needs Raft's joint-consensus membership changes.
 - **A retried write may happen twice.** If a leader dies after committing a write but before answering, the client retries and the object is written again. That's harmless for whole-object puts, but a real system would add idempotency keys.
 - **Stats reset on failover.** Counters such as "repairs done" live in the leader's memory.

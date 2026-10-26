@@ -315,7 +315,8 @@ async def route_to_leader(request: Request, call_next):
         return response
     leader_url = c.raft.peers.get(c.raft.leader_id)
     if not leader_url or request.headers.get("x-ms3-forwarded"):
-        return JSONResponse({"detail": "No leader elected right now; retry shortly"}, 503, headers=RETRY_HEADER)
+        return JSONResponse({"detail": "No leader right now: a majority of gateways must be up to elect one. "
+                                       "Retry shortly"}, 503, headers=RETRY_HEADER)
     headers = {"x-ms3-forwarded": c.raft.me}
     if "content-type" in request.headers:
         headers["content-type"] = request.headers["content-type"]
