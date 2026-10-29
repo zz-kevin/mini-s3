@@ -383,6 +383,15 @@ def cluster_status(request: Request):
     }
 
 
+@app.get("/_placements")
+async def placements(request: Request):
+    """Which nodes hold each object's copies, per the metadata (used by the on-call eval)."""
+    c = _cluster(request)
+    await _leader_for_reads(c)
+    return [{"key": f"{p['bucket']}/{p['key']}", "blob_id": blob_id, "checksum": p["checksum"],
+             "nodes": sorted(p["nodes"])} for blob_id, p in c.meta.placements().items()]
+
+
 @app.put("/{bucket}/{key:path}", status_code=201)
 async def put_object(bucket: str, key: str, request: Request):
     _check_bucket(bucket)

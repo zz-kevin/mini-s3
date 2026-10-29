@@ -34,7 +34,23 @@ def _save(state):
         json.dump(state, f, indent=2)
 
 
+def configure(home, gateway_port, first_node_port):
+    """Point every command at a separate cluster (own state, data, and ports), such as
+    the on-call eval's sandbox, so it never touches the cluster from ./ms3 cluster up."""
+    global STATE_DIR, STATE_FILE, DATA_DIR, GATEWAY_PORT, FIRST_NODE_PORT
+    STATE_DIR = os.path.join(home, ".cluster")
+    STATE_FILE = os.path.join(STATE_DIR, "state.json")
+    DATA_DIR = os.path.join(home, "data")
+    GATEWAY_PORT, FIRST_NODE_PORT = gateway_port, first_node_port
+
+
 def _running(pid):
+    try:
+        # A long-lived parent (the on-call eval) must reap children it killed, or they
+        # linger as zombies that still answer kill(pid, 0).
+        os.waitpid(pid, os.WNOHANG)
+    except (ChildProcessError, TypeError):
+        pass
     try:
         os.kill(pid, 0)
         return True
@@ -197,6 +213,10 @@ def kill(name):
         print(f"{label} is already down.")
         return ident
     os.killpg(entry["pid"], signal.SIGKILL)
+    # The signal is delivered asynchronously; wait so an immediate `start` doesn't see it still running.
+    deadline = time.time() + 3
+    while _running(entry["pid"]) and time.time() < deadline:
+        time.sleep(0.05)
     print(f"Killed {kind} {ident} (pid {entry['pid']}).")
     return ident
 

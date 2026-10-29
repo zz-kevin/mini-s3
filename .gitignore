@@ -7,3 +7,4 @@ data/
 data-backup-*/
 results/
 data-single-gateway-*/
+.oncall/
