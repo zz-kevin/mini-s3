@@ -103,7 +103,7 @@ class Ops:
     def __init__(self, enforce=True):
         self.enforce = enforce
         self.transcript = []
-        self.diagnosis = None
+        self.diagnoses = []  # scored on the first; later ones show the agent changing its mind
         self.finished = False
         self.started = time.time()
 
@@ -183,7 +183,7 @@ class Ops:
         return f"{out}\nDeleted node {target}'s data.\n{quiet(cluster.start, target)}".strip()
 
     def _diagnose(self, fault, target=None):
-        self.diagnosis = {"fault": fault, "target": target}
+        self.diagnoses.append({"fault": fault, "target": target})
         return "recorded"
 
     def _done(self):

@@ -95,7 +95,9 @@ def main():
 
     oc = sub.add_parser("oncall", help="break a sandbox cluster, let an agent fix it, and score it")
     oc.add_argument("--scenario", default="all", choices=["all", *faults.SCENARIOS])
-    oc.add_argument("--agent", default="all", choices=["all", *agents.AGENTS])
+    oc.add_argument("--agent", default="all",
+                    help=f"all (the scripted agents), {', '.join(agents.AGENTS)}, or ollama:<model> "
+                         "for a local model, e.g. ollama:qwen3:8b; separate several with commas")
     oc.add_argument("--guard", default="both", choices=["on", "off", "both"],
                     help="block unsafe actions (on), only record them (off), or run both")
     oc.add_argument("--seeds", type=int, default=1, help="episodes per combination")
@@ -147,7 +149,7 @@ def main():
         asyncio.run(chaos.run(a.objects, a.node, a.readers, kill=a.kill))
     elif a.cmd == "oncall":
         oncall.run([*faults.SCENARIOS] if a.scenario == "all" else [a.scenario],
-                   [*agents.AGENTS] if a.agent == "all" else [a.agent],
+                   [*agents.AGENTS] if a.agent == "all" else a.agent.split(","),
                    {"on": [True], "off": [False], "both": [True, False]}[a.guard], a.seeds, a.objects)
 
 

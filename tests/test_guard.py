@@ -14,18 +14,15 @@ def test_read_only_targets_and_unknown_names_pass():
     assert guard.check("restart", "zz", view())["allow"]
 
 
-def test_wipe_allowed_when_every_object_keeps_a_quorum_elsewhere():
-    assert guard.check("wipe_node", "c", view())["allow"]
+def test_wipe_denied_while_the_node_holds_tracked_copies():
+    # Even with every other node up, the metadata would keep counting copies that no longer exist.
+    v = guard.check("wipe_node", "c", view())
+    assert not v["allow"] and "2 copies" in v["reason"]
+    assert not guard.check("wipe_node", "c", view(alive="abd"))["allow"]  # also when c is the one down
 
 
-def test_wipe_denied_when_another_node_is_down():
-    v = guard.check("wipe_node", "c", view(alive="acd"))
-    assert not v["allow"] and "2 objects" in v["reason"]
-
-
-def test_wipe_judges_a_down_node_as_gone_for_good():
-    # c is already down, but wiping it is permanent; with b also down, b/y would have one copy.
-    assert not guard.check("wipe_node", "c", view(alive="ad"))["allow"]
+def test_wipe_allowed_for_a_node_with_no_tracked_copies():
+    assert guard.check("wipe_node", "d", view(placements=[{"key": "b/x", "nodes": ["a", "b", "c"]}]))["allow"]
 
 
 def test_wipe_never_applies_to_gateways():

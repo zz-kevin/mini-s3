@@ -29,12 +29,13 @@ def check(action, target, view):
     if action == "wipe_node":
         if target in gateways:
             return _deny("wipe_node only applies to storage nodes")
-        # A wipe is permanent, so judge it as if the node were gone for good, even if it's down now.
-        risky = [p["key"] for p in view["placements"] if target in p["nodes"]
-                 and len([n for n in p["nodes"] if n != target and n in view["alive_nodes"]]) < view["write_quorum"]]
-        if risky:
-            return _deny(f"wiping {target} would leave {len(risky)} objects with fewer than "
-                         f"{view['write_quorum']} live copies (e.g. {risky[0]})")
+        # The metadata keeps counting a wiped node's copies and nothing re-checks them, so any
+        # wipe of tracked data leaves objects silently under-replicated. (The first version only
+        # refused wipes that dropped objects below a write quorum; a model agent found the gap.)
+        tracked = [p["key"] for p in view["placements"] if target in p["nodes"]]
+        if tracked:
+            return _deny(f"node {target} holds {len(tracked)} copies the metadata still counts (e.g. "
+                         f"{tracked[0]}); wiping it would silently under-replicate them. Restart it instead")
         return ALLOW
 
     if action in ("kill", "restart") and target in gateways and target in view["live_gateways"]:
